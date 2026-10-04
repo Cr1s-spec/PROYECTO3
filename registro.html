@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Registro - Reseñas Turísticas</title>
+
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      min-height: 100vh;
+    }
+
+    .container {
+      flex: 1;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      background: #fff;
+
+      padding: 25px 40px;
+
+      border-radius: 8px;
+
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+      max-width: 450px;
+      width: 100%;
+
+      text-align: center;
+
+      margin: 20px 0;
+    }
+
+    h2 {
+      color: #0056b3;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      position: relative;
+      text-align: left;
+
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+
+      margin-bottom: 5px;
+
+      font-weight: bold;
+
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"] {
+
+      width: 100%;
+
+      padding: 10px 35px 10px 10px;
+
+      border-radius: 5px;
+
+      border: 1px solid #ddd;
+
+      box-sizing: border-box;
+
+      font-size: 14px;
+
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+
+      border-color: #007bff;
+    }
+
+    /* Ticket de verificación */
+
+    .ticket-check {
+      position: absolute;
+
+      right: 10px;
+      bottom: 8px;
+
+      color: #28a745;
+
+      font-weight: bold;
+
+      font-size: 18px;
+
+      display: none;
+    }
+
+    /* Campo válido */
+
+    input.valido {
+      border-color: #28a745;
+
+      background-color: #f0fff4;
+    }
+
+    /* Zona de verificación SMS */
+
+    #zonaSMS {
+      display: none;
+
+      margin-top: 15px;
+      margin-bottom: 20px;
+
+      padding: 15px;
+
+      border: 1px solid #ddd;
+
+      border-radius: 8px;
+
+      background-color: #f8f9fa;
+    }
+
+    #zonaSMS h3 {
+      margin-top: 0;
+
+      color: #0056b3;
+
+      font-size: 17px;
+
+      text-align: center;
+    }
+
+    #zonaSMS p {
+      font-size: 13px;
+
+      color: #555;
+
+      margin-bottom: 12px;
+
+      text-align: center;
+    }
+
+    #codigoVerificacion {
+      width: 100%;
+
+      padding: 10px;
+
+      box-sizing: border-box;
+
+      border: 1px solid #ddd;
+
+      border-radius: 5px;
+
+      font-size: 18px;
+
+      text-align: center;
+
+      letter-spacing: 5px;
+    }
+
+    #mensajeSMS {
+      margin-top: 10px;
+
+      font-size: 13px;
+
+      text-align: center;
+
+      font-weight: bold;
+    }
+
+    .sms-verificado {
+      color: #28a745;
+    }
+
+    .sms-error {
+      color: #dc3545;
+    }
+
+    /* Botones */
+
+    .btn-group {
+      display: flex;
+
+      gap: 10px;
+
+      margin-top: 15px;
+    }
+
+    button {
+      flex: 1;
+
+      padding: 12px;
+
+      border: none;
+
+      border-radius: 5px;
+
+      cursor: pointer;
+
+      font-size: 14px;
+
+      font-weight: bold;
+
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+
+    .btn-sms {
+      width: 100%;
+
+      margin-top: 10px;
+
+      background-color: #28a745;
+
+      color: white;
+    }
+
+    .btn-sms:hover {
+      background-color: #218838;
+    }
+
+    .btn-verificar {
+      width: 100%;
+
+      margin-top: 10px;
+
+      background-color: #007bff;
+
+      color: white;
+    }
+
+    .btn-verificar:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-verificado {
+      background-color: #28a745 !important;
+
+      cursor: default;
+    }
+
+    p {
+      margin-top: 20px;
+    }
+
+    a {
+      color: #007bff;
+
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+  </style>
+
+
+  <!-- SDKs de Firebase (Versión Compat) -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+</head>
+
+
+<body>
+
+  <div class="container">
+
+    <p id="usuarioActivo"></p>
+
+    <h2>Registro de Usuarios</h2>
+
+
+    <form id="frmRegistro" onsubmit="registrarUsuario(event)">
+
+
+      <!-- ================================ -->
+      <!-- 1. NOMBRE COMPLETO -->
+      <!-- ================================ -->
+
+      <div class="form-group">
+
+        <label for="regNombre">
+          1. Nombre Completo:
+        </label>
+
+        <input
+          type="text"
+          id="regNombre"
+          placeholder="Ej. Juan Pérez"
+          oninput="validarCampo(this)"
+          required
+        >
+
+        <span
+          class="ticket-check"
+          id="check-regNombre"
+        >
+          ✔
+        </span>
+
+      </div>
+
+
+      <!-- ================================ -->
+      <!-- 2. CORREO -->
+      <!-- ================================ -->
+
+      <div class="form-group">
+
+        <label for="regCorreo">
+          2. Correo Electrónico:
+        </label>
+
+        <input
+          type="email"
+          id="regCorreo"
+          placeholder="ejemplo@correo.com"
+          oninput="validarCampo(this)"
+          required
+        >
+
+        <span
+          class="ticket-check"
+          id="check-regCorreo"
+        >
+          ✔
+        </span>
+
+      </div>
+
+
+      <!-- ================================ -->
+      <!-- 3. TELÉFONO -->
+      <!-- ================================ -->
+
+      <div class="form-group">
+
+        <label for="regTelefono">
+          3. Teléfono de Contacto:
+        </label>
+
+        <input
+          type="tel"
+          id="regTelefono"
+          placeholder="Ej. +56912345678"
+          oninput="validarCampo(this)"
+          required
+        >
+
+        <span
+          class="ticket-check"
+          id="check-regTelefono"
+        >
+          ✔
+        </span>
+
+      </div>
+
+
+      <!-- ================================ -->
+      <!-- VERIFICACIÓN POR SMS -->
+      <!-- ================================ -->
+
+      <button
+        type="button"
+        id="btnEnviarSMS"
+        class="btn-sms"
+        onclick="enviarCodigoSMS()"
+      >
+        📱 Enviar código por SMS
+      </button>
+
+
+      <div id="zonaSMS">
+
+        <h3>Verificación del teléfono</h3>
+
+        <p>
+          Se ha preparado un mensaje SMS con tu código de verificación.
+        </p>
+
+        <input
+          type="text"
+          id="codigoVerificacion"
+          placeholder="Código de 6 dígitos"
+          maxlength="6"
+          inputmode="numeric"
+        >
+
+        <button
+          type="button"
+          id="btnVerificarSMS"
+          class="btn-verificar"
+          onclick="verificarCodigoSMS()"
+        >
+          Verificar código
+        </button>
+
+        <div id="mensajeSMS"></div>
+
+      </div>
+
+
+      <!-- ================================ -->
+      <!-- 4. USUARIO -->
+      <!-- ================================ -->
+
+      <div class="form-group">
+
+        <label for="regUsuario">
+          4. Usuario:
+        </label>
+
+        <input
+          type="text"
+          id="regUsuario"
+          placeholder="Crea tu usuario"
+          oninput="validarCampo(this)"
+          required
+        >
+
+        <span
+          class="ticket-check"
+          id="check-regUsuario"
+        >
+          ✔
+        </span>
+
+      </div>
+
+
+      <!-- ================================ -->
+      <!-- 5. CONTRASEÑA -->
+      <!-- ================================ -->
+
+      <div class="form-group">
+
+        <label for="regClave">
+          5. Contraseña:
+        </label>
+
+        <input
+          type="password"
+          id="regClave"
+          placeholder="Mínimo 6 caracteres"
+          oninput="validarCampo(this)"
+          required
+        >
+
+        <span
+          class="ticket-check"
+          id="check-regClave"
+        >
+          ✔
+        </span>
+
+      </div>
+
+
+      <!-- ================================ -->
+      <!-- BOTONES -->
+      <!-- ================================ -->
+
+      <div class="btn-group">
+
+        <button
+          type="submit"
+          class="btn-primary"
+          id="btnRegistrar"
+        >
+          Registrar
+        </button>
+
+        <button
+          type="button"
+          onclick="otroIngreso()"
+          class="btn-secondary"
+        >
+          Otro Ingreso
+        </button>
+
+      </div>
+
+    </form>
+
+
+    <!-- ================================ -->
+    <!-- VOLVER AL LOGIN -->
+    <!-- ================================ -->
+
+    <p>
+
+      <a href="index.html">
+        ¿Ya tienes cuenta? Inicia sesión
+      </a>
+
+    </p>
+
+  </div>
+
+
+  <!-- SCRIPT PRINCIPAL DEL PROYECTO -->
+
+  <script src="script.js"></script>
+
+
+  <script>
+
+    // ==========================================
+    // VARIABLES DE VERIFICACIÓN SMS
+    // ==========================================
+
+    let codigoSMS = null;
+
+    let telefonoVerificado = false;
+
+
+    // ==========================================
+    // VALIDACIÓN DE CAMPOS
+    // ==========================================
+
+    function validarCampo(input) {
+
+      const checkSpan =
+        document.getElementById("check-" + input.id);
+
+      let esValido = false;
+
+
+      // Validación del correo
+
+      if (input.type === "email") {
+
+        esValido =
+          input.value.includes("@") &&
+          input.value.includes(".");
+
+      }
+
+
+      // Validación de contraseña
+
+      else if (input.id === "regClave") {
+
+        esValido =
+          input.value.length >= 6;
+
+      }
+
+
+      // Validación del teléfono
+
+      else if (input.id === "regTelefono") {
+
+        const telefono =
+          input.value.trim();
+
+        esValido =
+          /^\+569\d{8}$/.test(telefono);
+
+      }
+
+
+      // Validación de los demás campos
+
+      else {
+
+        esValido =
+          input.value.trim().length >= 3;
+
+      }
+
+
+      // ==========================================
+      // CAMPO CORRECTO
+      // ==========================================
+
+      if (esValido) {
+
+        input.classList.add("valido");
+
+        if (checkSpan) {
+
+          checkSpan.style.display = "inline";
+
+        }
+
+      }
+
+
+      // ==========================================
+      // CAMPO INCORRECTO / VACÍO
+      // ==========================================
+
+      else {
+
+        input.classList.remove("valido");
+
+        if (checkSpan) {
+
+          checkSpan.style.display = "none";
+
+        }
+
+      }
+
+    }
+
+
+    // ==========================================
+    // GENERAR CÓDIGO
+    // ==========================================
+
+    function generarCodigoSMS() {
+
+      return Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+
+    }
+
+
+    // ==========================================
+    // ENVIAR CÓDIGO POR SMS
+    // ==========================================
+
+    function enviarCodigoSMS() {
+
+      const telefono =
+        document.getElementById("regTelefono").value.trim();
+
+
+      // Verificar formato
+
+      if (!/^\+569\d{8}$/.test(telefono)) {
+
+        alert(
+          "Ingresa un número chileno válido. Ejemplo: +56912345678"
+        );
+
+        return;
+
+      }
+
+
+      // Generar código
+
+      codigoSMS =
+        generarCodigoSMS();
+
+
+      telefonoVerificado = false;
+
+
+      // Crear mensaje
+
+      const mensaje =
+        "Código de verificación PlumasRutas: " +
+        codigoSMS;
+
+
+      // Abrir aplicación de mensajes
+
+      const enlaceSMS =
+        "sms:" +
+        telefono +
+        "?body=" +
+        encodeURIComponent(mensaje);
+
+
+      window.location.href =
+        enlaceSMS;
+
+
+      // Mostrar zona de verificación
+
+      document.getElementById(
+        "zonaSMS"
+      ).style.display = "block";
+
+
+      document.getElementById(
+        "mensajeSMS"
+      ).innerText =
+        "Código generado. Envía el SMS y luego ingresa el código.";
+
+
+      document.getElementById(
+        "mensajeSMS"
+      ).className = "";
+
+    }
+
+
+    // ==========================================
+    // VERIFICAR CÓDIGO
+    // ==========================================
+
+    function verificarCodigoSMS() {
+
+      const codigoIngresado =
+        document
+          .getElementById("codigoVerificacion")
+          .value
+          .trim();
+
+
+      if (!codigoSMS) {
+
+        alert(
+          "Primero debes generar un código."
+        );
+
+        return;
+
+      }
+
+
+      if (codigoIngresado === codigoSMS) {
+
+        telefonoVerificado = true;
+
+
+        const mensaje =
+          document.getElementById(
+            "mensajeSMS"
+          );
+
+
+        mensaje.innerText =
+          "✔ Teléfono verificado correctamente.";
+
+
+        mensaje.className =
+          "sms-verificado";
+
+
+        const boton =
+          document.getElementById(
+            "btnVerificarSMS"
+          );
+
+
+        boton.innerText =
+          "✔ Teléfono verificado";
+
+
+        boton.classList.add(
+          "btn-verificado"
+        );
+
+
+        boton.disabled = true;
+
+
+        document
+          .getElementById("codigoVerificacion")
+          .disabled = true;
+
+      }
+
+      else {
+
+        document
+          .getElementById("mensajeSMS")
+          .innerText =
+          "❌ Código incorrecto. Inténtalo nuevamente.";
+
+
+        document
+          .getElementById("mensajeSMS")
+          .className =
+          "sms-error";
+
+      }
+
+    }
+
+
+    // ==========================================
+    // OTRO INGRESO
+    // ==========================================
+
+    function otroIngreso() {
+
+      document
+        .getElementById("frmRegistro")
+        .reset();
+
+
+      const inputs =
+        document.querySelectorAll(
+          "#frmRegistro input"
+        );
+
+
+      inputs.forEach(input => {
+
+        input.classList.remove("valido");
+
+      });
+
+
+      const tickets =
+        document.querySelectorAll(
+          ".ticket-check"
+        );
+
+
+      tickets.forEach(ticket => {
+
+        ticket.style.display = "none";
+
+      });
+
+
+      // Reiniciar SMS
+
+      codigoSMS = null;
+
+      telefonoVerificado = false;
+
+
+      document.getElementById(
+        "zonaSMS"
+      ).style.display = "none";
+
+
+      document.getElementById(
+        "mensajeSMS"
+      ).innerText = "";
+
+
+      document.getElementById(
+        "codigoVerificacion"
+      ).disabled = false;
+
+
+      document.getElementById(
+        "btnVerificarSMS"
+      ).disabled = false;
+
+
+      document.getElementById(
+        "btnVerificarSMS"
+      ).innerText =
+        "Verificar código";
+
+
+      document.getElementById(
+        "btnVerificarSMS"
+      ).classList.remove(
+        "btn-verificado"
+      );
+
+    }
+
+
+    // ==========================================
+    // PROTEGER EL REGISTRO
+    // ==========================================
+
+    const formularioRegistro =
+      document.getElementById(
+        "frmRegistro"
+      );
+
+
+    formularioRegistro.addEventListener(
+      "submit",
+      function(event) {
+
+        if (!telefonoVerificado) {
+
+          event.preventDefault();
+
+
+          alert(
+            "Debes verificar tu número de teléfono antes de registrarte."
+          );
+
+
+          return false;
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>

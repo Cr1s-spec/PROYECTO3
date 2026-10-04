@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio - Reseñas Turísticas</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+      padding: 25px 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h2 {
+      color: #0056b3;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .logo {
+      width: 180px;
+      margin-bottom: 15px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Contenedor del campo */
+    .campo {
+      position: relative;
+      width: 100%;
+      margin-bottom: 18px;
+    }
+
+    /* Campos */
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 45px 12px 12px;
+      border-radius: 7px;
+      border: 2px solid #ddd;
+      box-sizing: border-box;
+      outline: none;
+      font-size: 15px;
+      background-color: #fff;
+
+      transition: all 0.3s ease;
+    }
+
+    /* Campo correcto */
+    input.correcto {
+      border-color: #28a745;
+      background-color: #f0fff4;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.10);
+    }
+
+    /* Campo incorrecto */
+    input.incorrecto {
+      border-color: #dc3545;
+      background-color: #fff5f5;
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.10);
+    }
+
+    /* Ticket */
+    .ticket {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%) scale(0.5);
+
+      width: 25px;
+      height: 25px;
+
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+
+      opacity: 0;
+
+      transition: all 0.3s ease;
+    }
+
+    /* Ticket verde */
+    .ticket.correcto {
+      background-color: #28a745;
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+
+    /* Ticket rojo */
+    .ticket.incorrecto {
+      background-color: #dc3545;
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+
+    /* Mensaje debajo */
+    .mensaje {
+      font-size: 12px;
+      margin-top: -12px;
+      margin-bottom: 12px;
+      text-align: left;
+      display: none;
+    }
+
+    .mensaje.correcto {
+      color: #28a745;
+    }
+
+    .mensaje.incorrecto {
+      color: #dc3545;
+    }
+
+    /* Botón */
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Enlace registro */
+    .register-link {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .register-link a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .register-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <script>
+    // ==========================================
+    // BLOQUEO POR CAPTCHA
+    // ==========================================
+
+    if (sessionStorage.getItem("captcha_aprobado") !== "true") {
+      window.location.href = "captcha.html";
+    }
+
+
+    // ==========================================
+    // VALIDACIÓN DE USUARIO Y CONTRASEÑA
+    // ==========================================
+
+    async function verificarUsuario() {
+
+      const usuario = document.getElementById("nombreUsuario");
+      const ticket = document.getElementById("ticketUsuario");
+      const mensaje = document.getElementById("mensajeUsuario");
+
+      const valor = usuario.value.trim();
+
+      if (valor === "") {
+        usuario.classList.remove("correcto", "incorrecto");
+        ticket.classList.remove("correcto", "incorrecto");
+        ticket.textContent = "";
+        mensaje.style.display = "none";
+        return;
+      }
+
+      let usuarioValido = false;
+
+      // El administrador también es un usuario válido.
+      if (valor.toLowerCase() === "admin") {
+        usuarioValido = true;
+      }
+
+      // Revisar usuarios registrados en localStorage.
+      try {
+        const usuariosGuardados =
+          JSON.parse(localStorage.getItem("usuarios_sistema")) || [];
+
+        usuarioValido = usuarioValido || usuariosGuardados.some(
+          u =>
+            u.usuario &&
+            u.usuario.toLowerCase() === valor.toLowerCase()
+        );
+      } catch (e) {
+        console.warn("No se pudieron revisar los usuarios locales.");
+      }
+
+      // Si script.js ya está cargado, revisar también la fuente de usuarios.
+      if (!usuarioValido && typeof obtenerUsuarios === "function") {
+        try {
+          const usuarios = await obtenerUsuarios();
+
+          usuarioValido = usuarios.some(
+            u =>
+              u.usuario &&
+              u.usuario.toLowerCase() === valor.toLowerCase()
+          );
+        } catch (e) {
+          console.warn("No se pudieron consultar los usuarios.");
+        }
+      }
+
+      if (usuarioValido) {
+
+        usuario.classList.remove("incorrecto");
+        usuario.classList.add("correcto");
+
+        ticket.classList.remove("incorrecto");
+        ticket.classList.add("correcto");
+
+        ticket.textContent = "✓";
+
+        mensaje.classList.remove("incorrecto");
+        mensaje.classList.add("correcto");
+
+        mensaje.textContent = "Usuario correcto";
+        mensaje.style.display = "block";
+
+      } else {
+
+        usuario.classList.remove("correcto");
+        usuario.classList.add("incorrecto");
+
+        ticket.classList.remove("correcto");
+        ticket.classList.add("incorrecto");
+
+        ticket.textContent = "✕";
+
+        mensaje.classList.remove("correcto");
+        mensaje.classList.add("incorrecto");
+
+        mensaje.textContent = "Usuario incorrecto";
+        mensaje.style.display = "block";
+      }
+    }
+
+
+    async function verificarClave() {
+
+      const clave = document.getElementById("claveUsuario");
+      const usuario = document.getElementById("nombreUsuario");
+      const ticket = document.getElementById("ticketClave");
+      const mensaje = document.getElementById("mensajeClave");
+
+      const valorClave = clave.value;
+      const valorUsuario = usuario.value.trim();
+
+      if (valorClave.length < 6) {
+  clave.classList.remove("correcto");
+  clave.classList.add("incorrecto");
+
+  ticket.classList.remove("correcto");
+  ticket.classList.add("incorrecto");
+
+  ticket.textContent = "✕";
+
+  mensaje.classList.remove("correcto");
+  mensaje.classList.add("incorrecto");
+
+  mensaje.textContent = "La contraseña debe tener 6 dígitos";
+  mensaje.style.display = "block";
+
+  return;
+}
+
+      let claveValida = false;
+
+      // Usuario administrador.
+      if (
+        valorUsuario.toLowerCase() === "admin" &&
+        valorClave === "123456"
+      ) {
+        claveValida = true;
+      }
+
+      // Revisar usuarios registrados en localStorage.
+      try {
+
+        const usuariosGuardados =
+          JSON.parse(localStorage.getItem("usuarios_sistema")) || [];
+
+        const usuarioEncontrado =
+          usuariosGuardados.find(
+            u =>
+              u.usuario &&
+              u.usuario.toLowerCase() ===
+                valorUsuario.toLowerCase()
+          );
+
+        if (
+          usuarioEncontrado &&
+          usuarioEncontrado.clave === valorClave
+        ) {
+          claveValida = true;
+        }
+
+      } catch (e) {
+        console.warn("No se pudieron revisar las contraseñas locales.");
+      }
+
+      // Si script.js ya está cargado, revisar también los usuarios.
+      if (!claveValida && typeof obtenerUsuarios === "function") {
+
+        try {
+
+          const usuarios =
+            await obtenerUsuarios();
+
+          const usuarioEncontrado =
+            usuarios.find(
+              u =>
+                u.usuario &&
+                u.usuario.toLowerCase() ===
+                  valorUsuario.toLowerCase()
+            );
+
+          if (
+            usuarioEncontrado &&
+            usuarioEncontrado.clave === valorClave
+          ) {
+            claveValida = true;
+          }
+
+        } catch (e) {
+          console.warn("No se pudieron consultar las contraseñas.");
+        }
+      }
+
+      if (claveValida) {
+
+        clave.classList.remove("incorrecto");
+        clave.classList.add("correcto");
+
+        ticket.classList.remove("incorrecto");
+        ticket.classList.add("correcto");
+
+        ticket.textContent = "✓";
+
+        mensaje.classList.remove("incorrecto");
+        mensaje.classList.add("correcto");
+
+        mensaje.textContent = "Contraseña correcta";
+        mensaje.style.display = "block";
+
+      } else {
+
+        clave.classList.remove("correcto");
+        clave.classList.add("incorrecto");
+
+        ticket.classList.remove("correcto");
+        ticket.classList.add("incorrecto");
+
+        ticket.textContent = "✕";
+
+        mensaje.classList.remove("correcto");
+        mensaje.classList.add("incorrecto");
+
+        mensaje.textContent = "Contraseña incorrecta";
+        mensaje.style.display = "block";
+      }
+    }
+  </script>
+
+  <!-- SDKs de Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+</head>
+
+<body>
+
+  <div class="container" style="margin: 20px;">
+
+    <!-- LOGO -->
+    <img
+      src="iconos/logo.png"
+      alt="Logo"
+      class="logo"
+      onerror="this.style.display='none'"
+    >
+
+    <h2>Inicio de sesión</h2>
+
+
+    <form onsubmit="iniciarSesion(); return false;">
+
+      <!-- ============================= -->
+      <!-- USUARIO -->
+      <!-- ============================= -->
+
+      <label for="nombreUsuario">
+        Usuario:
+      </label>
+
+      <div class="campo">
+
+        <input
+          type="text"
+          id="nombreUsuario"
+          placeholder="Tu usuario"
+          required
+          oninput="verificarUsuario()"
+        >
+
+        <span
+          id="ticketUsuario"
+          class="ticket"
+        ></span>
+
+      </div>
+
+      <div
+        id="mensajeUsuario"
+        class="mensaje"
+      ></div>
+
+
+      <!-- ============================= -->
+      <!-- CONTRASEÑA -->
+      <!-- ============================= -->
+
+      <label for="claveUsuario">
+        Contraseña:
+      </label>
+
+      <div class="campo">
+
+        <input
+          type="password"
+          id="claveUsuario"
+          placeholder="Tu contraseña"
+          required
+          oninput="verificarClave()"
+        >
+
+        <span
+          id="ticketClave"
+          class="ticket"
+        ></span>
+
+      </div>
+
+      <div
+        id="mensajeClave"
+        class="mensaje"
+      ></div>
+
+
+      <!-- ============================= -->
+      <!-- BOTÓN ENTRAR -->
+      <!-- ============================= -->
+
+      <button type="submit">
+        Entrar
+      </button>
+
+    </form>
+
+
+    <!-- ============================= -->
+    <!-- REGISTRO -->
+    <!-- ============================= -->
+
+    <div class="register-link">
+
+      <p>
+        ¿No tienes cuenta?
+        <a href="registro.html">
+          Regístrate AQUÍ
+        </a>
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- SCRIPT PRINCIPAL DEL PROYECTO -->
+  <script src="script.js"></script>
+
+</body>
+</html>
